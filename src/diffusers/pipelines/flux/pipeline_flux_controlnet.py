@@ -44,6 +44,7 @@ from ...utils.torch_utils import randn_tensor
 from ..pipeline_utils import DiffusionPipeline
 from .pipeline_output import FluxPipelineOutput
 
+from fastdm.model.model_entry import FluxControlnetWrapper
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
@@ -341,7 +342,7 @@ class FluxControlNetPipeline(DiffusionPipeline, FluxLoraLoaderMixin, FromSingleF
     def encode_prompt(
         self,
         prompt: Union[str, List[str]],
-        prompt_2: Optional[Union[str, List[str]]] = None,
+        prompt_2: Union[str, List[str]],
         device: Optional[torch.device] = None,
         num_images_per_prompt: int = 1,
         prompt_embeds: Optional[torch.FloatTensor] = None,
@@ -892,7 +893,7 @@ class FluxControlNetPipeline(DiffusionPipeline, FluxLoraLoaderMixin, FromSingleF
 
         # 3. Prepare control image
         num_channels_latents = self.transformer.config.in_channels // 4
-        if isinstance(self.controlnet, FluxControlNetModel):
+        if isinstance(self.controlnet, (FluxControlNetModel, FluxControlnetWrapper)):
             control_image = self.prepare_image(
                 image=control_image,
                 width=width,
@@ -1020,7 +1021,7 @@ class FluxControlNetPipeline(DiffusionPipeline, FluxLoraLoaderMixin, FromSingleF
                 1.0 - float(i / len(timesteps) < s or (i + 1) / len(timesteps) > e)
                 for s, e in zip(control_guidance_start, control_guidance_end)
             ]
-            controlnet_keep.append(keeps[0] if isinstance(self.controlnet, FluxControlNetModel) else keeps)
+            controlnet_keep.append(keeps[0] if isinstance(self.controlnet, (FluxControlNetModel, FluxControlnetWrapper)) else keeps)
 
         if (ip_adapter_image is not None or ip_adapter_image_embeds is not None) and (
             negative_ip_adapter_image is None and negative_ip_adapter_image_embeds is None

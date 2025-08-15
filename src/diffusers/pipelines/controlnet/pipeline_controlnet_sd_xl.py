@@ -64,6 +64,7 @@ if is_invisible_watermark_available():
 
 from ...utils import is_torch_xla_available
 
+from fastdm.model.model_entry import  SDXLControlnetModelWrapper
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
@@ -721,9 +722,9 @@ class StableDiffusionXLControlNetPipeline(
             self.controlnet, torch._dynamo.eval_frame.OptimizedModule
         )
         if (
-            isinstance(self.controlnet, ControlNetModel)
+            isinstance(self.controlnet, (ControlNetModel,SDXLControlnetModelWrapper))
             or is_compiled
-            and isinstance(self.controlnet._orig_mod, ControlNetModel)
+            and isinstance(self.controlnet._orig_mod, (ControlNetModel,SDXLControlnetModelWrapper))
         ):
             self.check_image(image, prompt, prompt_embeds)
         elif (
@@ -750,9 +751,9 @@ class StableDiffusionXLControlNetPipeline(
 
         # Check `controlnet_conditioning_scale`
         if (
-            isinstance(self.controlnet, ControlNetModel)
+            isinstance(self.controlnet, (ControlNetModel,SDXLControlnetModelWrapper))
             or is_compiled
-            and isinstance(self.controlnet._orig_mod, ControlNetModel)
+            and isinstance(self.controlnet._orig_mod, (ControlNetModel,SDXLControlnetModelWrapper))
         ):
             if not isinstance(controlnet_conditioning_scale, float):
                 raise TypeError("For single controlnet: `controlnet_conditioning_scale` must be type `float`.")
@@ -1279,7 +1280,7 @@ class StableDiffusionXLControlNetPipeline(
 
         global_pool_conditions = (
             controlnet.config.global_pool_conditions
-            if isinstance(controlnet, ControlNetModel)
+            if isinstance(controlnet, (ControlNetModel,SDXLControlnetModelWrapper))
             else controlnet.nets[0].config.global_pool_conditions
         )
         guess_mode = guess_mode or global_pool_conditions
@@ -1320,7 +1321,7 @@ class StableDiffusionXLControlNetPipeline(
             )
 
         # 4. Prepare image
-        if isinstance(controlnet, ControlNetModel):
+        if isinstance(controlnet, (ControlNetModel,SDXLControlnetModelWrapper)):
             image = self.prepare_image(
                 image=image,
                 width=width,
@@ -1393,7 +1394,7 @@ class StableDiffusionXLControlNetPipeline(
                 1.0 - float(i / len(timesteps) < s or (i + 1) / len(timesteps) > e)
                 for s, e in zip(control_guidance_start, control_guidance_end)
             ]
-            controlnet_keep.append(keeps[0] if isinstance(controlnet, ControlNetModel) else keeps)
+            controlnet_keep.append(keeps[0] if isinstance(controlnet, (ControlNetModel,SDXLControlnetModelWrapper)) else keeps)
 
         # 7.2 Prepare added time ids & embeddings
         if isinstance(image, list):
