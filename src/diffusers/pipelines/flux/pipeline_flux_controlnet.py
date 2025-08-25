@@ -44,7 +44,7 @@ from ...utils.torch_utils import randn_tensor
 from ..pipeline_utils import DiffusionPipeline
 from .pipeline_output import FluxPipelineOutput
 
-from fastdm.model.model_entry import FluxControlnetWrapper
+from fastdm.model_entry import FluxControlnetWrapper
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm

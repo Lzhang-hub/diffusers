@@ -64,7 +64,7 @@ if is_invisible_watermark_available():
 
 from ...utils import is_torch_xla_available
 
-from fastdm.model.model_entry import  SDXLControlnetModelWrapper
+from fastdm.model_entry import  SDXLControlnetModelWrapper
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
